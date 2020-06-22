@@ -1,0 +1,77 @@
+Bootstrap: docker
+From: ubuntu:18.04
+
+%post
+#Set timezone for tzdata
+export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
+echo "tzdata tzdata/Areas select Europe" >> preseed.txt
+echo "tzdata tzdata/Zones/Europe select London" >> preseed.txt
+apt-get -y update && apt-get install -y apt-utils
+apt-get install -y build-essential
+
+#Set preseed options
+debconf-set-selections preseed.txt
+apt-get install -y tzdata
+
+apt-get install -y wget
+apt-get install -y git-all
+apt-get install -y software-properties-common #required for apt-add-repository
+apt-get -y update
+
+#Set correct locale 
+apt-get -y update && apt-get install -y locales
+locale-gen en_GB.UTF-8
+
+#gdtools (prereq of rgdal) requires Cairo
+#rgdal needs libgdal and proj4
+apt-get install -y libcairo2-dev
+#apt-get install -y libgdal-dev
+#apt-get install -y gdal-bin
+apt-get install -y proj-bin
+
+#download and install Python
+apt-get install -y python3-dev python3-setuptools python3-gdal python3-pip python3-rtree python3-shapely 
+
+#Create stub directory for /nobackup
+mkdir -p /nobackup
+
+#install libspatialindex
+apt-get install -y libspatialindex-dev
+
+#Install GDAL
+#https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html
+add-apt-repository ppa:ubuntugis/ppa
+apt-get -y update
+apt-get install -y gdal-bin
+apt-get install -y libgdal-dev
+export CPLUS_INCLUDE_PATH=/usr/include/gdal
+export C_INCLUDE_PATH=/usr/include/gdal
+pip3 install GDAL==2.4.0
+
+#Install other INVEST dependencies
+pip3 install Pyro4==4.77
+pip3 install pandas
+pip3 install numpy
+pip3 install Rtree==0.8.3
+pip3 install scipy==1.4.0
+pip3 install Shapely==1.6.4
+pip3 install pygeoprocessing==1.9.2
+pip3 install taskgraph[niced_processes]==0.9.1
+pip3 install psutil
+pip3 install chardet
+pip3 install xlrd
+pip3 install xlwt
+
+#Install INVEST
+#https://pypi.org/project/natcap.invest/
+pip3 install natcap.invest
+
+%environment
+#set environment variables for correct locale
+export LANG=en_GB.UTF-8
+export LANGUAGE=en_GB.UTF-8
+export LC_ALL=en_GB.UTF-8
+
+
+
+
